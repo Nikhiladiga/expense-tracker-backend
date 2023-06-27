@@ -1,0 +1,33 @@
+{
+  "name": "expense-tracker",
+  "version": "1.0.0",
+  "description": "Backend for expense tracker mobile app",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "nodemon src"
+  },
+  "keywords": [
+    "expense",
+    "finance",
+    "express",
+    "backend",
+    "server",
+    "firebase"
+  ],
+  "author": "Nikhil Adiga",
+  "license": "MIT",
+  "dependencies": {
+    "@google-cloud/local-auth": "^2.1.0",
+    "axios": "^1.4.0",
+    "cors": "^2.8.5",
+    "cuid": "^3.0.0",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "firebase": "^9.23.0",
+    "googleapis": "^105.0.0",
+    "helmet": "^7.0.0",
+    "hpp": "^0.2.3"
+  }
+}
