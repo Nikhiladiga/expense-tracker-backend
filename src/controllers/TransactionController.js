@@ -4,12 +4,14 @@ import {
     addTransactionService,
     refreshTransactionService,
     updateTransactionService,
-    deleteTransactionService 
+    deleteTransactionService,
+    getDashboardData 
 } from '../services/TransactionService.js';
 
 const router = express.Router();
 
-router.get("/timeframe/:createdAt",getTransactionsService);
+router.get("/getDashboardData/monthStartDay/:monthStartDay/month/:month/year/:year",getDashboardData);
+router.get("/monthStartDay/:monthStartDay/month/:month/year/:year",getTransactionsService);
 router.post("/addTransaction",addTransactionService);
 router.put("/updateTransaction/:id",updateTransactionService);
 router.delete("/deleteTransaction/:id",deleteTransactionService);

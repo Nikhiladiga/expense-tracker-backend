@@ -1,8 +1,15 @@
 import {addDoc,collection,doc,getDocs, setDoc, query, where, getDoc, updateDoc} from 'firebase/firestore';
 import {db} from '../config/firebase.js';
+import {getStartAndEndDate} from '../utils/index.js';
+import {createId} from '@paralleldrive/cuid2';
 
 export const addTransaction = async(data) => {
   try {
+
+    if(!data.id) {
+      data.id = createId();
+    }
+
     const transactionsRef = collection(db, "Transactions");
     const querySnapshot = await getDocs(transactionsRef);
 
@@ -14,37 +21,40 @@ export const addTransaction = async(data) => {
     if (idAlreadyExists) {
       console.log(`Transaction with id ${data.id} already exists. Skipping...`);
     } else {
+      console.log("Adding transaction");
       await setDoc(doc(transactionsRef, data.id),data);
+      return data;
     }
   } catch (error) {
-    console.error("Error adding document:", error);
+      console.error("Error adding document:", error);
   }
 }
 
-export const getTransactions = async (createdAt) => {
-    try {
-        // const querySnapshot = await getDocs(collection(db, "Transactions"));
-        const transactionRef = collection(db,"Transactions");
-        const q = query(
+export const getTransactions = async (monthStartDay, month, year) => {
+  try {
+      const dateObj = getStartAndEndDate(monthStartDay, month, year);
+      const transactionRef = collection(db, "Transactions");
+      const q = query(
           transactionRef,
-          where("createdAt", ">", createdAt)
-          )
-        const querySnapshot = await getDocs(q);
+          where("createdAt", ">=", dateObj.startDate),
+          where("createdAt", "<", dateObj.endDate)
+      );
+      const querySnapshot = await getDocs(q);
 
-        const promises = querySnapshot.docs.map((doc) => {
-          return new Promise((resolve,reject) => {
-            if (doc.data().isDeleted === 0) {
-              resolve(doc.data());
-            }
+      const promises = querySnapshot.docs.map((doc) => {
+          return new Promise((resolve, reject) => {
+              if (doc.data().isDeleted === 0) {
+                  resolve(doc.data());
+              }
           });
-        });
-        const results = await Promise.all(promises);
-        return results;
-      } catch (error) {
-        console.error("Error getting transactions: ", error);
-        return null;
-      }
-}
+      });
+      const results = await Promise.all(promises);
+      return results;
+  } catch (error) {
+      console.error("Error getting transactions: ", error);
+      return null;
+  }
+};
 
 export const updateTransaction = async (data,id) => {
   try {

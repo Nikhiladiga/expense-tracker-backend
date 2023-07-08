@@ -1,5 +1,6 @@
 import { collection, doc, getDocs,setDoc } from 'firebase/firestore';
 import { db } from '../config/firebase.js';
+import { createId } from '@paralleldrive/cuid2';
 
 export const getUserData = async () => {
     try {
@@ -22,7 +23,13 @@ export const getUserData = async () => {
 
   export const setUserData = async (data) => {
     try {
-      const userId = data.id; // Assuming your custom ID field is called 'id'
+      let userId = data.id; // Assuming your custom ID field is called 'id'
+
+      if (!userId) {
+        userId = createId();
+        data.id = userId;
+      }
+
       const userRef = doc(db,"User",userId + '');
   
       // Set the user data with the provided ID, merging the new data with existing fields

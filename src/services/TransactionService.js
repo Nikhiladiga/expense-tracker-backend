@@ -10,12 +10,53 @@ import {listMessages,getMessage} from '../config/auth.js';
 
 export const getTransactionsService = async (req, res) => {
     try {
-        const result = await getTransactions(req.params.createdAt);
+        const result = await getTransactions(req.params.monthStartDay,req.params.month,req.params.year);
         res.status(200).json({ success: true, result });
     } catch (e) {
         res.status(500).json({ success: false, error: e.message });
     }
 }
+
+export const getDashboardData = async (req, res) => {
+    try {
+        const result = await getTransactions(req.params.monthStartDay, req.params.month, req.params.year);
+
+        // Calculate total expense
+        const totalExpense = result
+            ? result.reduce((total, transaction) => {
+                if (transaction.transactionType === 'DEBIT') {
+                    return total + Math.abs(transaction.amount);
+                } else {
+                    return total;
+                }
+            }, 0)
+            : 0;
+
+        // Calculate total income
+        const totalIncome = result
+            ? result.reduce((total, transaction) => {
+                if (transaction.transactionType === 'CREDIT') {
+                    return total + transaction.amount;
+                } else {
+                    return total;
+                }
+            }, 0)
+            : 0;
+
+        const totalBalance = totalIncome - totalExpense;
+
+        // Return the dashboard data
+        res.json({
+            totalExpense,
+            totalIncome,
+            totalBalance
+        });
+    } catch (error) {
+        console.error("Error getting dashboard data: ", error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+};
+
 
 export const addTransactionService = async (req,res) => {
     try {
@@ -26,6 +67,7 @@ export const addTransactionService = async (req,res) => {
             res.status(500).json({success:false});
         }
     } catch (e) {
+        console.error(e);
         res.status(500).json({ success: false, error: e.message });
     }
 }
@@ -60,22 +102,12 @@ export const refreshTransactionService = async (req,res) => {
     try {
         const auth = await authorize();
         listMessages(auth, 'me', 'from:alerts@axisbank.com', async (messages) => {
+            console.log("No of messages read:",messages.length);
             const promises = messages.map((message) =>
                 new Promise((resolve, reject) => {
                     getMessage(auth, 'me', message.id, (body) => {
                         if (body.data.length > 0) {
-                            // Regular expression to match date followed by "Dear Nikhil Adiga"
-                            const startPattern = /\d{2}-\d{2}-\d{4} Dear Nikhil Adiga/;
-                            const startMatch = body.data.match(startPattern);
-                            const end = body.data.indexOf("Axis Bank Ltd") + "Axis Bank Ltd".length;
-                            let mainContent = '';
-
-                            if (startMatch) {
-                                const start = body.data.indexOf(startMatch[0]);
-                                // Extract the main content
-                                mainContent = body.data.slice(start, end);
-                            }
-                            resolve(parseMessage(mainContent, body.createdAt, message.id));
+                            resolve(parseMessage(body.data, body.createdAt, message.id));
                         } else {
                             resolve("");
                         }
@@ -84,6 +116,9 @@ export const refreshTransactionService = async (req,res) => {
             );
 
             const result = await Promise.all(promises);
+
+            console.log(result.length);
+
             const finalRes = [];
             
             //Check if transaction already exists and add here if it does not.
@@ -97,7 +132,7 @@ export const refreshTransactionService = async (req,res) => {
             });
 
             await Promise.all(addTransactionPromises);
-            res.status(200).json({success:true,finalRes});
+            res.status(200).json({success:true});
         });
     } catch (e) {
         res.status(500).json({ success: false, error: e.message });

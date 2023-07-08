@@ -9,16 +9,21 @@ const TOKEN_PATH = path.join(process.cwd(), 'token.json');
 const CREDENTIALS_PATH = path.join(process.cwd(), 'credentials.json');
 
 async function loadSavedCredentialsIfExist() {
+    console.log("Inside loadSavedCredentialsIfExist method");
     try {
         const content = await fs.readFile(TOKEN_PATH);
         const credentials = JSON.parse(content);
-        return google.auth.fromJSON(credentials);
+        console.log("CREDS:",credentials);
+        let data = google.auth.fromJSON(credentials);
+        console.log("DATA FROM GOOGLE:",data);
+        return data;
     } catch (err) {
         return null;
     }
 }
 
 async function saveCredentials(client) {
+    console.log("Inside saveCredentials method");
     const content = await fs.readFile(CREDENTIALS_PATH);
     const keys = JSON.parse(content);
     const key = keys.installed || keys.web;
@@ -29,16 +34,18 @@ async function saveCredentials(client) {
         refresh_token: client.credentials.refresh_token,
     });
     await fs.writeFile(TOKEN_PATH, payload);
+    console.log("token.json file created and saved");
 }
 
 export async function authorize() {
+    console.log("Inside authorize method");
     let client = await loadSavedCredentialsIfExist();
     if (client) {
         return client;
     }
     client = await authenticate({
         scopes: SCOPES,
-        keyfilePath: CREDENTIALS_PATH,
+        keyfilePath: CREDENTIALS_PATH
     });
     if (client.credentials) {
         await saveCredentials(client);
@@ -51,6 +58,8 @@ export async function listMessages(auth, userId = 'me', query = '', callback) {
     gmail.users.messages.list({
         userId: userId,
         q: query,
+        maxResults:500,
+        orderBy:'internalDate'
     }, (err, res) => {
         if (err) return console.log('The API returned an error: ' + err);
         const messages = res.data.messages;
@@ -66,7 +75,7 @@ export async function getMessage(auth, userId, messageId, callback) {
     const gmail = google.gmail({ version: 'v1', auth });
     gmail.users.messages.get({
         userId: userId,
-        id: messageId,
+        id: messageId
     }, (err, res) => {
         if (err) return console.log('The API returned an error: ' + err);
 
