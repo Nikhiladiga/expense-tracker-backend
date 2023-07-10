@@ -1,67 +1,18 @@
-import path from 'path';
-import process from 'process';
-import { authenticate } from '@google-cloud/local-auth';
 import { google } from 'googleapis';
-import {promises as fs} from 'fs';
 import {config} from 'dotenv';
 
 config();
 
-const SCOPES = ['https://www.googleapis.com/auth/gmail.readonly'];
-
-const TOKEN_PATH = path.join(process.cwd(), 'token.json');
-
-let CREDENTIALS_PATH;
-
-if(process.env.NODE_ENV === "dev"){
-    CREDENTIALS_PATH = path.join(process.cwd(), 'credentials.json');
-} else if(process.env.NODE_ENV === "prod"){
-    CREDENTIALS_PATH = "/etc/secrets/credentials.json";
-}
-
-async function loadSavedCredentialsIfExist() {
-    console.log("Inside loadSavedCredentialsIfExist method");
-    try {
-        const content = await fs.readFile(TOKEN_PATH);
-        const credentials = JSON.parse(content);
-        console.log("CREDS:",credentials);
-        let data = google.auth.fromJSON(credentials);
-        console.log("DATA FROM GOOGLE:",data);
-        return data;
-    } catch (err) {
-        return null;
-    }
-}
-
-async function saveCredentials(client) {
-    console.log("Inside saveCredentials method");
-    const content = await fs.readFile(CREDENTIALS_PATH);
-    const keys = JSON.parse(content);
-    const key = keys.installed || keys.web;
-    const payload = JSON.stringify({
-        type: 'authorized_user',
-        client_id: key.client_id,
-        client_secret: key.client_secret,
-        refresh_token: client.credentials.refresh_token,
-    });
-    await fs.writeFile(TOKEN_PATH, payload);
-    console.log("token.json file created and saved");
-}
-
 export async function authorize() {
-    console.log("Inside authorize method");
-    let client = await loadSavedCredentialsIfExist();
-    if (client) {
-        return client;
-    }
-    client = await authenticate({
-        scopes: SCOPES,
-        keyfilePath: CREDENTIALS_PATH
-    });
-    if (client.credentials) {
-        await saveCredentials(client);
-    }
-    return client;
+    const oAuth2Client = new google
+        .auth
+        .OAuth2(
+            process.env.CLIENT_ID,
+            process.env.CLIENT_SECRET,
+            process.env.REDIRECT_URI
+        );
+    oAuth2Client.setCredentials({refresh_token:process.env.REFRESH_TOKEN});
+    return oAuth2Client;
 }
 
 export async function listMessages(auth, userId = 'me', query = '', callback) {

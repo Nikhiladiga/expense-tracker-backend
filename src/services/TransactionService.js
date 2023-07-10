@@ -101,6 +101,7 @@ export const deleteTransactionService = async (req,res) => {
 export const refreshTransactionService = async (req,res) => {
     try {
         const auth = await authorize();
+        console.log("AUTH:",auth);
         listMessages(auth, 'me', 'from:alerts@axisbank.com', async (messages) => {
             console.log("No of messages read:",messages.length);
             const promises = messages.map((message) =>
