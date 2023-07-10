@@ -2,7 +2,6 @@
 import { initializeApp } from "firebase/app";
 import { getFirestore } from 'firebase/firestore';
 
-
 const firebaseConfig = {
   apiKey: "AIzaSyCdEr82APwyvCENbQ2z2neZ3ZR3bcpbdfg",
   authDomain: "expense-tracker-backend-391021.firebaseapp.com",

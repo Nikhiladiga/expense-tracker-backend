@@ -33,6 +33,7 @@ export const addTransaction = async(data) => {
 export const getTransactions = async (monthStartDay, month, year) => {
   try {
       const dateObj = getStartAndEndDate(monthStartDay, month, year);
+
       const transactionRef = collection(db, "Transactions");
       const q = query(
           transactionRef,
@@ -45,10 +46,14 @@ export const getTransactions = async (monthStartDay, month, year) => {
           return new Promise((resolve, reject) => {
               if (doc.data().isDeleted === 0) {
                   resolve(doc.data());
+              } else {
+                  resolve({});
               }
           });
       });
+
       const results = await Promise.all(promises);
+
       return results;
   } catch (error) {
       console.error("Error getting transactions: ", error);

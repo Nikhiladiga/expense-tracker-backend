@@ -19,6 +19,8 @@ export const getTransactionsService = async (req, res) => {
 
 export const getDashboardData = async (req, res) => {
     try {
+        console.log("Inside this function")
+
         const result = await getTransactions(req.params.monthStartDay, req.params.month, req.params.year);
 
         // Calculate total expense

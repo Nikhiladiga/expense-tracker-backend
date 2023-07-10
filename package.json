@@ -20,15 +20,11 @@
   "author": "Nikhil Adiga",
   "license": "MIT",
   "dependencies": {
-    "@google-cloud/local-auth": "^2.1.1",
     "@paralleldrive/cuid2": "^2.2.1",
-    "axios": "^1.4.0",
     "cors": "^2.8.5",
     "dotenv": "^16.3.1",
     "express": "^4.18.2",
     "firebase": "^9.23.0",
-    "googleapis": "^105.0.0",
-    "helmet": "^7.0.0",
-    "hpp": "^0.2.3"
+    "googleapis": "^105.0.0"
   }
 }
