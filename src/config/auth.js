@@ -5,8 +5,15 @@ import { google } from 'googleapis';
 import {promises as fs} from 'fs';
 
 const SCOPES = ['https://www.googleapis.com/auth/gmail.readonly'];
+
 const TOKEN_PATH = path.join(process.cwd(), 'token.json');
-const CREDENTIALS_PATH = path.join(process.cwd(), 'credentials.json');
+
+let CREDENTIALS_PATH;
+if(process.env.NODE_ENV === "dev"){
+    CREDENTIALS_PATH = path.join(process.cwd(), 'credentials.json');
+} else if(process.env.NODE_ENV === "prod"){
+    CREDENTIALS_PATH = "/etc/secrets/credentials.json";
+}
 
 async function loadSavedCredentialsIfExist() {
     console.log("Inside loadSavedCredentialsIfExist method");
